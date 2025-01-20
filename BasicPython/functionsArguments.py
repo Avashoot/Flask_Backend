@@ -21,4 +21,4 @@ def divide(numerator, denominator):
 
 divide(201,30)
 
-divide(10)
+divide(10,10)
