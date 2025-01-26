@@ -1,5 +1,7 @@
 {
     "cSpell.words": [
-        "debugpy"
+        "debugpy",
+        "dotenv",
+        "smorest"
     ]
 }

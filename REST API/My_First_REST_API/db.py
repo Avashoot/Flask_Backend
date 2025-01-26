@@ -1,0 +1,3 @@
+stores: dict= {}
+
+items: dict = {}
