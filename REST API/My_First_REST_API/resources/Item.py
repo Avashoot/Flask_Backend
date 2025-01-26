@@ -3,6 +3,7 @@ from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort # type: ignore
 from db import items, stores
+from schemas import ItemSchema, UpdateItemSchema
 
 # This is file is the same as the store.py But 
 # In this file their is just operations on the Items in the store
@@ -11,6 +12,8 @@ blp = Blueprint("Items", __name__, description="Operations on item")
 
 @blp.route("/item/<string:item_id>")
 class Item(MethodView):
+
+    @blp.response(200, ItemSchema)
     def get(self, item_id):
         try:
             return items[item_id]
@@ -24,12 +27,10 @@ class Item(MethodView):
         except KeyError:
             abort(404, message="Item not found")
 
-    def put(self, item_id):
-        new_item_data = request.get_json()
-    
-        if 'item_price' not in new_item_data or 'item_name' not in new_item_data:
-            abort(400, message="Bad request, Ensure that 'item_price' and 'item_name' is present in JSON payload")
-
+    @blp.arguments(UpdateItemSchema)
+    @blp.response(200, ItemSchema)
+    def put(self, new_item_data, item_id):
+        # we need to put new_item_data just after the self
         try:
             item = items[item_id]
             item |= new_item_data
@@ -42,19 +43,22 @@ class Item(MethodView):
 
 @blp.route("/item")
 class ItemList(MethodView):
+    #here we are using marshmallow for validation and response
+    # so while returning before we are using {"items" : list(items.values())}
+    # But now ItemSchema(many=True) at the beginning 
+    # while returning already it convert it into lis so, just return 
+    @blp.response(200,ItemSchema(many=True))
     def get(self):
-        return {"items" : list(items.values())}
+        return items.values() #this will now return a list of items not a object with list of items
 
-    def post(self):
-        item_data = request.get_json()
+    
+    @blp.arguments(ItemSchema)
+    @blp.response(201, ItemSchema)
+    def post(self, item_data):
+        # we are now using the marshmallow schemas for validation purposes
+        # so, we don't need tp use request.get_json() shown below
+        # item_data = request.get_json()
         # this for checking the JSON payload is correct or not
-        if(
-            "item_name" not in item_data
-            or "item_price" not in item_data
-            or "store_id" not in item_data
-        ):
-            abort(400, message="Bad request, make sure 'item_name', 'item_price' and 'store_id' are included in the JSON payload")
-        
         # check teat the same item is not added twice
         for item in items.values():
             if (

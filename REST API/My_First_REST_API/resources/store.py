@@ -3,6 +3,7 @@ from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort # type: ignore
 from db import stores
+from schemas import StoreSchema
 
 # The Blueprint in flask_smorest used to divide API into multiple segments
 # Here instance of Blueprint class thats  come with the 3 attributes
@@ -19,6 +20,7 @@ class Store(MethodView):
     # the classes and their routing or REST methods in flask
     # the below get() method act as app.get("url/<id>")
     # this get() method is for the information about that store
+    @blp.response(200, StoreSchema)
     def get(self, store_id):
         try:
             return stores[store_id]
@@ -37,17 +39,14 @@ class Store(MethodView):
 @blp.route("/store")
 class StoreList(MethodView):
     # this is for the get the data of the all the stores
+    @blp.response(200, StoreSchema(many=True))
     def get(self):
-        return {
-            "stores" : list(stores.values())
-        }
+        return stores.values() # return list because StoreSchema(many=True)
 
     # this is for the add the new store in the database
-    def post(self):
-        store_data = request.get_json()
-        if "store_name" not in store_data:
-            abort(400, "Bad request, ensure 'store_name' is included in JSON payload")
-        
+    @blp.arguments(StoreSchema)
+    @blp.response(201, StoreSchema)
+    def post(self, store_data):
         for store in stores.values():
             if store["store_name"] == store_data["store_name"]:
                 abort(400, message="Store already exists.")
