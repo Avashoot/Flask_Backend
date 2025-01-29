@@ -2,7 +2,11 @@ import uuid
 from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort # type: ignore
-from db import stores
+
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from db import db
+from models import StoreModel
+
 from schemas import StoreSchema
 
 # The Blueprint in flask_smorest used to divide API into multiple segments
@@ -22,18 +26,15 @@ class Store(MethodView):
     # this get() method is for the information about that store
     @blp.response(200, StoreSchema)
     def get(self, store_id):
-        try:
-            return stores[store_id]
-        except KeyError:
-            abort(404, message="Store not found")
+        store = StoreModel.query.get_or_404(store_id)
+        return store
 
     #  this delete() delete the store data
     def delete(self, store_id):
-        try:
-            del stores[store_id]
-            return {"message":"Store deleted"}
-        except KeyError:
-            abort(404, message="Store not found")
+        store = StoreModel.query.get_or_404(store_id)
+        db.session.delete(store)
+        db.session.commit()
+        return {"Message" : "Store deleted"}
 
 
 @blp.route("/store")
@@ -41,21 +42,24 @@ class StoreList(MethodView):
     # this is for the get the data of the all the stores
     @blp.response(200, StoreSchema(many=True))
     def get(self):
-        return stores.values() # return list because StoreSchema(many=True)
+        return StoreModel.query.all() # return list because StoreSchema(many=True)
 
     # this is for the add the new store in the database
     @blp.arguments(StoreSchema)
     @blp.response(201, StoreSchema)
     def post(self, store_data):
-        for store in stores.values():
-            if store["store_name"] == store_data["store_name"]:
-                abort(400, message="Store already exists.")
-        store_id = uuid.uuid4().hex #long string of numbers and letters
-        new_store = {
-            **store_data,
-            "store_id" : store_id
-        }
+        store = StoreModel(** store_data)
 
-        stores[store_id] = new_store
-    # 201 means  accepted the data and create the store
-        return new_store, 201 #status code 
+        try:
+            db.session.add(store)
+            db.session.commit()
+        except IntegrityError:
+            abort(
+                400, message="Store with that name already exists."
+            )
+        except SQLAlchemyError:
+            abort(
+                500, message="An error occur while creating the store"
+            )
+        
+        return store
