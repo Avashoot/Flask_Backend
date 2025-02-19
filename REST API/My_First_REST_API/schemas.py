@@ -1,14 +1,18 @@
 from marshmallow import Schema, fields
 
 class PlaneItemSchema(Schema):
-    item_id = fields.Str(dump_only= True)
+    item_id = fields.Int(dump_only= True)
     item_name = fields.Str(required=True)
     item_price = fields.Float(required= True)
 
 
 class PlaneStoreSchema(Schema):
-    store_id = fields.Str(dump_only=True)
+    store_id = fields.Int(dump_only=True)
     store_name = fields.Str(required=True)
+
+class PlaneTagSchema(Schema):
+    tag_id = fields.Int(dump_only = True)
+    tag_name = fields.Str()
 
 class UpdateItemSchema(Schema):
     item_name = fields.Str()
@@ -38,11 +42,26 @@ so that we need to use PlaneStoreSchema, PlaneItemSchema
 '''
 
 class ItemSchema(PlaneItemSchema):
-    store_id= fields.Int(required=True)
-    store = fields.Nested(PlaneStoreSchema, dump_only= True)
+    store_id= fields.Int(required=True, load_only= True)
+    store = fields.Nested(PlaneStoreSchema(), dump_only= True)
+    # we are adding for returning the value after updating teh new model
+    tags = fields.List(fields.Nested(PlaneTagSchema()), dump_only= True)
 
 
 class StoreSchema(PlaneStoreSchema):
-    items = fields.List(fields.Nested(PlaneItemSchema, dump_only = True))
+    items = fields.List(fields.Nested(PlaneItemSchema()), dump_only = True)
+    tags = fields.List(fields.Nested(PlaneTagSchema()), dump_only = True)
+
+class TagSchema(PlaneTagSchema):
+    store_id= fields.Int(load_only = True)
+    store = fields.Nested(PlaneStoreSchema(), dump_only= True)
+    items = fields.List(fields.Nested(PlaneItemSchema()), dump_only = True)
 
 
+
+
+class TagAndItemSchema(Schema):
+    message = fields.Str()
+    item = fields.Nested(ItemSchema)
+    tag = fields.Nested(TagSchema)
+    

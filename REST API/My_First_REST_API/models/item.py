@@ -10,3 +10,5 @@ class ItemModel(db.Model): #type: ignore
     store_id = db.Column(db.Integer, db.ForeignKey("stores.store_id"), unique=False, nullable= False)
     # grab me a store object with th above store_id
     store = db.relationship("StoreModel" , back_populates="items")
+
+    tags = db.relationship("TagModel", back_populates = "items", secondary= "items_tags")
