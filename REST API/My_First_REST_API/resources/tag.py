@@ -39,7 +39,7 @@ class TagInStore(MethodView):
 @blp.route("/item/<string:item_id>/tag/<string:tag_id>")
 class LinkTagToItem(MethodView):
 
-    @blp.response(TagSchema)
+    @blp.response(201, TagSchema)
     def post(self, item_id, tag_id):
         item  = ItemModel.query.get_or_404(item_id)
         tag = TagModel.query.get_or_404(tag_id)
@@ -53,7 +53,7 @@ class LinkTagToItem(MethodView):
         
         return tag
 
-    @blp.response(TagAndItemSchema)
+    @blp.response(200, TagAndItemSchema)
     def delete(self, item_id, tag_id):
         item  = ItemModel.query.get_or_404(item_id)
         tag = TagModel.query.get_or_404(tag_id)
