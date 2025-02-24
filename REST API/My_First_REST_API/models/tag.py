@@ -10,4 +10,4 @@ class TagModel(db.Model): #type: ignore
     store= db.relationship("StoreModel", back_populates = "tags")
     # tags get populates with items only when secondary table matches the data "items_tags"
     # it back_populates going through secondary table
-    items = db.relationship("ItemModel", back_populates = "tags", secondary = "items_tags")
+    items = db.relationship("ItemModel", back_populates = "tags", secondary = "items_tags") 

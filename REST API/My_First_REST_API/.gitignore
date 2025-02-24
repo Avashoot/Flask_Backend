@@ -1,8 +1,8 @@
 # Byte-compiled / cached files
-__pycache__/
+__pycache__
 *.py[cod]
 *$py.class
-
+.vscode
 # Virtual environment
 .venv/
 .env

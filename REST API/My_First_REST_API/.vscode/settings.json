@@ -1,7 +1,10 @@
 {
     "cSpell.words": [
+        "blocklist",
         "debugpy",
         "dotenv",
+        "jsonify",
+        "passlib",
         "smorest",
         "sqlalchemy"
     ]
